@@ -1,9 +1,16 @@
 ---
-title: ""
+title: "コンセプトモデルとプロダクションモデル：ソフトウェア開発における認知構造の考察"
 emoji: "💭"
 type: "idea" # tech: 技術記事 / idea: アイデア
-topics: ["認知", "アーキテクチャ", "設計"]
-published: false
+topics:
+  [
+    "認知負荷",
+    "メンタルモデル",
+    "ソフトウェア開発プロセス",
+    "アーキテクチャ",
+    "AI活用",
+  ]
+published: true
 ---
 
 ## 1. はじめに
@@ -53,7 +60,7 @@ published: false
 
 開発者の認知構造を図示すると以下のようになる。
 
-![CognitiveModel.png](/images/20251215-cognitive-structure-concept-and-production-model/CognitiveModel.png)
+![CognitiveModel.png](/images/20251215-software-cognitive-structure-model/CognitiveModel.png)
 
 この図を見ると、開発者の認知が外部領域とどのようにインタラクションしているかがわかりやすいのではないだろうか。
 
