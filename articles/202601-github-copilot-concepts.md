@@ -241,35 +241,82 @@ applyTo: "src/components/**/*.tsx"
 
 ---
 
-## エージェント機能：より高度な自動化
+## エージェントの実行環境
+
+Agent Modeには2つの実行環境があり、それぞれ異なる特性を持つ。
 
 ### Agent Mode（ローカル実行）
 
 VS Code内で動作するエージェント。自律的にファイルを探索し、編集し、ターミナルコマンドを実行する。すべてローカルで動作するため、未コミットの変更も見える。
 
+### GitHub Copilot CLI（ローカル実行）
+
+ターミナルから直接利用できるエージェント。コマンドライン上でCopilotの機能を利用でき、カスタムエージェント（`/agent`）やMCP連携も可能。Agent Skillsもサポート。
+
 ### Coding Agent（クラウド実行）
 
 GitHub上で動作するエージェント。Issueやコメントから起動し、バックグラウンドでPRを作成する。GitHub Actionsの環境で動くため、コミット済みのコードのみアクセス可能。
 
-![エージェントの種類](/images/202601-github-copilot-concepts/copilot-agent-types.png)
+![エージェントの実行環境](/images/202601-github-copilot-concepts/copilot-execution-environments.png)
 
-### サブエージェント
+---
 
-Agent Mode内で`#runSubagent`を使うと、独立したコンテキストを持つサブエージェントを起動できる。大きなタスクを分割したり、特定の調査を並列で行わせたりするのに使う。
+## コンテキスト分離の4つの仕組み
 
+Agent Modeを使いこなす上で重要なのが「コンテキストの分離と管理」である。大規模なタスクでは、すべての情報を1つのコンテキストに詰め込むと混乱する。Copilotは4つの仕組みでコンテキストを分離・管理する。
+
+### 概要：4つの仕組みの役割
+
+| 仕組み              | 役割         |                            |
+| ---------------- | ---------- | -------------------------- |
+| **サブエージェント**     | タスク分割・並列実行 | コンテキストと実行環境をメインのエージェントから分離 |
+| **カスタムエージェント**   | 専門家の人格定義   | 特定の役割に特化したAI専門家を定義         |
+| **Agent Skills** | 専門知識の提供    | 手順の定義                      |
+| **MCP**          | 外部ツールとの接続  | データベースやAPIなど外部連携定義         |
+
+### 全体像
+
+![Copilot エージェントアーキテクチャ](/images/202601-github-copilot-concepts/copilot-agent-architecture.png)
+
+**ポイント**：
+- **実行環境**：メインエージェントと複数のサブエージェント（1:n関係）
+  - 各エージェントは独立したコンテキストを持つ
+  - メインからサブを起動可能
+- **定義ファイル**：カスタムエージェント（`.agent.md`）、Agent Skills（`SKILL.md`）、MCP設定（`mcp-config.json`）
+  - メイン・サブすべてのエージェントが、すべての定義を読み込み可能
+
+これらは排他的ではなく、**組み合わせて使う**ことで最大の効果を発揮する。
+
+---
+
+### サブエージェント：タスク分割と並列実行
+
+**概念**：メインのAgent Modeから独立したコンテキストを持つ一時的なエージェントを起動する仕組み。
+
+**起動方法**：
 ```
 #runSubagent を使って認証周りのコードを調査して、セキュリティ上の問題があれば報告して
 ```
 
-サブエージェントの特徴：
+**特徴**：
 - メインのコンテキストを汚染しない
 - 複数を並列実行可能
 - 結果のサマリーのみが返る
 
-### カスタムエージェント
+**使いどころ**：
+- 大きなタスクを複数の調査タスクに分割
+- 異なる観点での並列分析（例：セキュリティとパフォーマンスを同時に）
+- 関係ない情報でメインコンテキストを汚染したくない場合
 
-`.github/agents/`に`.agent.md`ファイルを配置すると、専門化したエージェントを定義できる。
+---
 
+### カスタムエージェント：専門家の人格定義
+
+**概念**：特定の役割を持った専門家エージェントを定義し、明示的に呼び出せる仕組み。
+
+**設定場所**：`.github/agents/[name].agent.md`
+
+**ファイル例**：
 ```markdown
 ---
 name: security-reviewer
@@ -285,18 +332,107 @@ OWASP Top 10の観点でコードをレビューする。
 脆弱性を発見したら、重大度と修正方法を報告する。
 ```
 
+**特徴**：
+- エンドツーエンドのワークフローを一貫して処理
+- 利用可能なツールを制限できる
+- GitHub Copilot専用（オープンスタンダードではない）
+
+**使いどころ**：
+- セキュリティレビュー、パフォーマンス最適化など、特定の専門性を持つ作業
+- 一貫した視点で複数ステップを処理してほしいとき
+
 ---
 
-## MCP：外部ツールとの連携
+### Agent Skills：専門知識の再利用
 
-MCP（Model Context Protocol）は、Copilotを外部のツールやデータソースと連携させるためのプロトコルである。Agent Modeと組み合わせることで、Copilotの能力を大幅に拡張できる。
+**概念**：特定のタスクを再現可能な方法で実行するための「フォルダ形式のナレッジパッケージ」。プロンプトから自動判定でロードされる。
 
-例えば：
+**設定場所**：
+- プロジェクト固有：`.github/skills/[skill-name]/SKILL.md`
+- 個人用：`~/.copilot/skills/[skill-name]/SKILL.md`
+
+**ファイル例**：
+```markdown
+---
+name: webapp-testing
+description: ウェブアプリケーションのE2Eテストを実行する
+---
+
+# Web App Testing Skill
+
+このスキルはPlaywrightを使ったE2Eテストの作成を支援します。
+
+## テストの命名規則
+- ファイル名は `*.spec.ts`
+- テストケースは `test('should ...')`
+
+## 実行コマンド
+```bash
+npm run test:e2e
+```
+```
+
+**Progressive Disclosure（段階的読み込み）**：
+
+効率的なコンテキスト管理のため、3段階で情報を読み込む：
+
+1. **スキル発見**：YAML frontmatter（name, description）のみで関連性判断
+2. **指示読み込み**：プロンプトがdescriptionに該当したら本文を読み込み
+3. **リソースアクセス**：必要時のみスクリプトや例を参照
+
+この仕組みにより、**多数のスキルをインストールしても、関連するものだけが自動的にロードされる**。
+
+![Agent Skills Progressive Disclosure](/images/202601-github-copilot-concepts/copilot-skills-progressive-disclosure.png)
+
+**特徴**：
+- プロンプトから自動判定（明示的な呼び出し不要）
+- オープンスタンダード（GitHub Copilot、Claude Code、Cursorなど共通）
+- プロジェクト間で再利用可能
+
+**使いどころ**：
+- プロジェクト固有のワークフロー（デプロイ手順、テスト方法）
+- 社内の開発プラクティス
+- 特定技術スタックの専門知識
+
+**スキルはコミュニティで共有されている**：
+- [anthropics/skills](https://github.com/anthropics/skills)
+- [github/awesome-copilot](https://github.com/github/awesome-copilot)
+
+---
+
+### MCP：外部ツールとの連携
+
+**概念**：Copilotを外部のツールやデータソースと連携させるためのプロトコル。
+
+**設定場所**：VS Code settings.json等
+
+**特徴**：
+- Agent Modeが使えるツールを拡張
+- データベース、外部API、ブラウザなどにアクセス可能
+- MCPサーバーが提供する機能をツールとして利用
+
+**使いどころ**：
 - データベースへのクエリ実行
 - 外部APIとの連携
 - ブラウザの自動操作
 
-MCPサーバーを設定すると、Agent Modeがそのツールを使えるようになる。「このDBのスキーマを見て、適切なクエリを書いて」といった指示が可能になる。
+**例**：
+```
+このDBのスキーマを見て、適切なクエリを書いて
+```
+
+---
+
+### 補足：環境別の利用可能性
+
+2025/01/25現在、これらの仕組みは実行環境によって利用可否が異なる：
+
+| 仕組み | VS Code Agent Mode | GitHub Copilot CLI | Copilot coding agent |
+|--------|-------------------|-------------------|---------------------|
+| **サブエージェント** | ✅ `#runSubagent` | ❌ 未対応（将来予定） | 不明 |
+| **カスタムエージェント** | ✅ `.agent.md` | ✅ `/agent` | ✅ |
+| **Agent Skills** | ✅ Insiders版<br>⏳ Stable版（近日対応） | ✅ | ✅ |
+| **MCP** | ✅ | ✅ `mcp-config.json` | ✅ |
 
 ---
 
@@ -327,7 +463,21 @@ Copilotは「確率的に最もありそうなコード」を生成している�
 
 ### 4. カスタマイズに投資する
 
-`.github/copilot-instructions.md`を整備するだけで、チーム全員のCopilot体験が向上する。初期投資の価値は十分にある。
+一度設定すれば継続的に効果を生む。投資対効果の高い順に：
+
+1. **カスタム指示**（`.github/copilot-instructions.md`）
+   - コーディング規約、命名規則を記述
+   - チーム全員の体験が向上
+
+2. **Agent Skills**（`.github/skills/`）
+   - 繰り返しタスク（デプロイ、テスト実行）を定義
+   - オープンスタンダードで他ツールでも再利用可
+
+3. **カスタムエージェント**（`.github/agents/`）
+   - 頻繁な専門タスク（セキュリティレビュー等）を定義
+
+4. **MCP連携**
+   - 外部ツール（DB、CI/CDなど）と統合
 
 ---
 
@@ -340,3 +490,6 @@ Copilotは「確率的に最もありそうなコード」を生成している�
 - [Adding repository custom instructions - GitHub Docs](https://docs.github.com/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot)
 - [Copilot Next Edit Suggestions - GitHub Next](https://githubnext.com/projects/copilot-next-edit-suggestions/)
 - [Enhancing GitHub Copilot agent mode with MCP - GitHub Docs](https://docs.github.com/en/copilot/tutorials/enhance-agent-mode-with-mcp)
+- [About GitHub Copilot coding agent - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-coding-agent)
+- [About Agent Skills - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
+- [Use Agent Skills in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
