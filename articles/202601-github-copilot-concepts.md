@@ -370,7 +370,6 @@ description: ウェブアプリケーションのE2Eテストを実行する
 ```bash
 npm run test:e2e
 ```
-```
 
 **Progressive Disclosure（段階的読み込み）**：
 
@@ -381,8 +380,6 @@ npm run test:e2e
 3. **リソースアクセス**：必要時のみスクリプトや例を参照
 
 この仕組みにより、**多数のスキルをインストールしても、関連するものだけが自動的にロードされる**。
-
-![Agent Skills Progressive Disclosure](/images/202601-github-copilot-concepts/copilot-skills-progressive-disclosure.png)
 
 **特徴**：
 - プロンプトから自動判定（明示的な呼び出し不要）
