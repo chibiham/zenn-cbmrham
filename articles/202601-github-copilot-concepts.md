@@ -243,7 +243,7 @@ applyTo: "src/components/**/*.tsx"
 
 ## エージェントの実行環境
 
-Agent Modeには2つの実行環境があり、それぞれ異なる特性を持つ。
+Agent Modeには3つの実行環境があり、それぞれ異なる特性を持つ。
 
 ### Agent Mode（ローカル実行）
 
@@ -347,6 +347,10 @@ OWASP Top 10の観点でコードをレビューする。
 
 **概念**：特定のタスクを再現可能な方法で実行するための「フォルダ形式のナレッジパッケージ」。プロンプトから自動判定でロードされる。
 
+:::message
+VS Codeで使用するには設定で `chat.useAgentSkills` を有効化する必要があります（現在プレビュー機能）。
+:::
+
 **設定場所**：
 - プロジェクト固有：`.github/skills/[skill-name]/SKILL.md`
 - 個人用：`~/.copilot/skills/[skill-name]/SKILL.md`
@@ -392,8 +396,16 @@ npm run test:e2e
 - 特定技術スタックの専門知識
 
 **スキルはコミュニティで共有されている**：
-- [anthropics/skills](https://github.com/anthropics/skills)
-- [github/awesome-copilot](https://github.com/github/awesome-copilot)
+- [anthropics/skills](https://github.com/anthropics/skills) - Anthropic公式のリファレンススキル集
+- [github/awesome-copilot](https://github.com/github/awesome-copilot) - コミュニティによるスキル、エージェント、プロンプト集
+
+**カスタムエージェント vs Agent Skills の使い分け**：
+
+| 観点 | カスタムエージェント | Agent Skills |
+|------|---------------------|-------------|
+| 呼び出し | 明示的（`@agent-name`） | 自動判定（プロンプトから） |
+| ポータビリティ | VS Code専用 | 複数ツール対応 |
+| 適している用途 | 一貫した視点での複数ステップ処理 | 再利用可能な手順の定義 |
 
 ---
 
@@ -428,7 +440,7 @@ npm run test:e2e
 |--------|-------------------|-------------------|---------------------|
 | **サブエージェント** | ✅ `#runSubagent` | ❌ 未対応（将来予定） | 不明 |
 | **カスタムエージェント** | ✅ `.agent.md` | ✅ `/agent` | ✅ |
-| **Agent Skills** | ✅ Insiders版<br>⏳ Stable版（近日対応） | ✅ | ✅ |
+| **Agent Skills** | ✅ プレビュー版<br>`chat.useAgentSkills`設定が必要 | ✅ | ✅ |
 | **MCP** | ✅ | ✅ `mcp-config.json` | ✅ |
 
 ---
