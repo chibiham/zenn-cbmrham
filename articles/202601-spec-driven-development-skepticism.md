@@ -3,7 +3,7 @@ title: "仕様駆動開発への懐疑：なぜ2025年にウォーターフォ�
 emoji: "🔄"
 type: "tech"
 topics: ["sdd", "agile", "ai", "開発手法", "ddd"]
-published: true
+published: false
 ---
 
 :::message

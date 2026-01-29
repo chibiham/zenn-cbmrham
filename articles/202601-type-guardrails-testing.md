@@ -3,7 +3,7 @@ title: "型によるガードレールとテストの役割：AI時代のコー�
 emoji: "🛡️"
 type: "tech"
 topics: ["typescript", "testing", "型システム", "ai", "ソフトウェア設計"]
-published: true
+published: false
 ---
 
 :::message
