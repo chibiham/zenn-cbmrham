@@ -36,7 +36,7 @@ OpenClawは3度名前を変えている。ロブスターが成長のために�
 
 会話履歴、認証情報、カスタマイズ内容はすべて自分の手元に残る。
 
-![OpenClawのアーキテクチャ図](/images/202601-openclaw-introduction/openclaw-architecture.png)
+![OpenClawのアーキテクチャ図](/images/202601-clawdbot-introduction/openclaw-architecture.png)
 *OpenClawのアーキテクチャ：Gatewayがローカルで動き、複数チャネルとLLM、スキルレジストリを接続する*
 
 ### 主な特徴
@@ -67,7 +67,7 @@ ChatGPTやClaudeも便利だが、「自分専用」ではない。会話履歴�
 
 OpenClawの最も特徴的な機能は **自己増殖（self-evolution）** だ。これは単なるカスタマイズではなく、エージェントが自分で自分を拡張していく仕組みを指す。
 
-![自己増殖のフロー図](/images/202601-openclaw-introduction/openclaw-self-evolution.png)
+![自己増殖のフロー図](/images/202601-clawdbot-introduction/openclaw-self-evolution.png)
 *自己増殖フロー：ユーザーのリクエストに応じてスキルを自動取得し、学習結果を蓄積していく*
 
 ### レイヤー1: ClawHub（スキル自動発見）
@@ -115,7 +115,7 @@ git commit -m "Add agent workspace"
 
 ## Agent Workspaceの構造
 
-![Agent Workspaceのディレクトリ構造](/images/202601-openclaw-introduction/openclaw-workspace.png)
+![Agent Workspaceのディレクトリ構造](/images/202601-clawdbot-introduction/openclaw-workspace.png)
 *Agent Workspaceのディレクトリ構造：各ファイルがエージェントの人格・記憶・能力を定義する*
 
 Workspaceは `~/.openclaw/workspace/` に配置され、以下のファイルで構成される：
