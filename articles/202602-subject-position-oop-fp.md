@@ -3,12 +3,8 @@ title: "主語の位置：OOPと関数型における関数適用スタイルの
 emoji: "🔄"
 type: "tech"
 topics: ["typescript", "oop", "関数型プログラミング", "設計", "プログラミングパラダイム"]
-published: false
+published: true
 ---
-
-:::message
-この記事はAIを使用して執筆しています。
-:::
 
 ## 導入：「shapeに対してcalcを行う」という感覚
 
